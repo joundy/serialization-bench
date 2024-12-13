@@ -5,9 +5,10 @@ use brotli::{
 };
 use std::io::Read;
 
+#[derive(Copy, Clone)]
 pub struct Brotli {
-    quality: i32, // 1-11 
-    lgwin: i32, // 10-24 window size
+    quality: i32, // 1-11
+    lgwin: i32,   // 10-24 window size
     buffer_size: usize,
 }
 
@@ -48,5 +49,8 @@ impl Compression for Brotli {
         decomp.read_to_end(&mut decompressed_data).unwrap();
         Ok(decompressed_data)
     }
-}
 
+    fn clone_box(&self) -> Box<dyn Compression> {
+        Box::new(self.clone())
+    }
+}
