@@ -34,9 +34,15 @@ struct CompressionBench {
 }
 
 fn main() {
-    let mut table = Table::new();
-    table.add_row(row!["Method", "Bytes", "Reduction from json (%)"]);
+    // Structure to hold row data
+    #[derive(Clone)]
+    struct TableRow {
+        method: String,
+        bytes: usize,
+        reduction: i32,
+    }
 
+    let mut rows: Vec<TableRow> = Vec::new();
     let a = Sample {
         long_field_a: "String A".to_string(),
         long_field_b: "String B".to_string(),
@@ -68,22 +74,26 @@ fn main() {
     ];
 
     let encoded_json_len = serde_json::to_vec(&a).unwrap().len();
-    table.add_row(row!["json", encoded_json_len, 0]);
+    rows.push(TableRow {
+        method: "json".to_string(),
+        bytes: encoded_json_len,
+        reduction: 0,
+    });
 
-    let json_reduction = |value: usize| -> u32 {
+    let json_reduction = |value: usize| -> i32 {
         let percent =
             ((encoded_json_len as f32) - (value as f32)) / encoded_json_len as f32 * 100.0;
-        percent as u32
+        percent as i32
     };
 
     // std borsh
     {
         let encoded_borsh = to_vec(&a).unwrap();
-        table.add_row(row![
-            "borsh",
-            encoded_borsh.len(),
-            json_reduction(encoded_borsh.len())
-        ]);
+        rows.push(TableRow {
+            method: "borsh".to_string(),
+            bytes: encoded_borsh.len(),
+            reduction: json_reduction(encoded_borsh.len()),
+        });
 
         let decoded_a = from_slice::<Sample>(&encoded_borsh).unwrap();
         assert_eq!(a, decoded_a);
@@ -98,21 +108,21 @@ fn main() {
 
         let decoded_a = from_slice::<Sample>(&decompressed).unwrap();
         assert_eq!(a, decoded_a);
-        table.add_row(row![
-            format!("borsh({})", bench.name),
-            compressed.len(),
-            json_reduction(compressed.len())
-        ]);
+        rows.push(TableRow {
+            method: format!("borsh({})", bench.name),
+            bytes: compressed.len(),
+            reduction: json_reduction(compressed.len()),
+        });
     }
 
     // std cbor
     {
         let encoded_cbor = serde_cbor::to_vec(&a).unwrap();
-        table.add_row(row![
-            "cbor",
-            encoded_cbor.len(),
-            json_reduction(encoded_cbor.len())
-        ]);
+        rows.push(TableRow {
+            method: "cbor".to_string(),
+            bytes: encoded_cbor.len(),
+            reduction: json_reduction(encoded_cbor.len()),
+        });
         let decoded_a = serde_cbor::from_slice::<Sample>(&encoded_cbor).unwrap();
         assert_eq!(a, decoded_a);
     }
@@ -126,10 +136,25 @@ fn main() {
 
         let decoded_a = serde_cbor::from_slice::<Sample>(&decompressed).unwrap();
         assert_eq!(a, decoded_a);
+        rows.push(TableRow {
+            method: format!("cbor({})", bench.name),
+            bytes: compressed.len(),
+            reduction: json_reduction(compressed.len()),
+        });
+    }
+
+    // Sort rows by reduction value in descending order
+    rows.sort_by(|a, b| b.reduction.cmp(&a.reduction));
+
+    // Create and populate the table with sorted rows
+    let mut table = Table::new();
+    table.add_row(row!["Method", "Bytes", "Reduction from json (%)"]);
+    
+    for row in rows {
         table.add_row(row![
-            format!("cbor({})", bench.name),
-            compressed.len(),
-            json_reduction(compressed.len())
+            row.method,
+            row.bytes,
+            row.reduction
         ]);
     }
 
