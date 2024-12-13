@@ -1,4 +1,5 @@
 mod broli;
+mod gzip;
 mod types;
 
 use prettytable::{row, Table};
@@ -6,6 +7,7 @@ use types::Compression;
 
 use borsh::{from_slice, io, to_vec, BorshDeserialize, BorshSerialize};
 use broli::Brotli;
+use gzip::Gzip;
 use serde::{Deserialize, Serialize};
 use serde_cbor;
 use serde_json;
@@ -42,10 +44,16 @@ fn main() {
 
     let brotli = Brotli::new(11, 22, 4096);
 
-    let compression_benchs: Vec<CompressionBench> = vec![CompressionBench {
-        name: "brotli".to_string(),
-        compression: Box::new(brotli),
-    }];
+    let compression_benchs: Vec<CompressionBench> = vec![
+        CompressionBench {
+            name: "brotli".to_string(),
+            compression: Box::new(brotli),
+        },
+        CompressionBench {
+            name: "gzip".to_string(),
+            compression: Box::new(Gzip::new(9)),
+        },
+    ];
 
     let encoded_json_len = serde_json::to_vec(&a).unwrap().len();
     table.add_row(row!["json", encoded_json_len, 0]);
