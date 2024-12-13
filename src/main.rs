@@ -1,6 +1,7 @@
 mod broli;
 mod deflate;
 mod gzip;
+mod lz4;
 mod types;
 mod zlib;
 
@@ -11,6 +12,7 @@ use borsh::{from_slice, io, to_vec, BorshDeserialize, BorshSerialize};
 use broli::Brotli;
 use deflate::Deflate;
 use gzip::Gzip;
+use lz4::Lz4;
 use zlib::Zlib;
 use serde::{Deserialize, Serialize};
 use serde_cbor;
@@ -70,6 +72,10 @@ fn main() {
         CompressionBench {
             name: "zlib".to_string(),
             compression: Box::new(Zlib::new(9)),
+        },
+        CompressionBench {
+            name: "lz4".to_string(),
+            compression: Box::new(Lz4::new(16)),
         },
     ];
 
