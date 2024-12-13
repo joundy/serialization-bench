@@ -56,12 +56,10 @@ fn main() {
         long_field_z: u64::MAX,
     };
 
-    let brotli = Brotli::new(11, 22, 4096);
-
     let compression_benchs: Vec<CompressionBench> = vec![
         CompressionBench {
             name: "brotli".to_string(),
-            compression: Box::new(brotli),
+            compression: Box::new(Brotli::new(11, 22, 4096)),
         },
         CompressionBench {
             name: "gzip".to_string(),
