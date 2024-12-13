@@ -2,6 +2,7 @@ mod broli;
 mod deflate;
 mod gzip;
 mod lz4;
+mod snap;
 mod types;
 mod zlib;
 
@@ -13,6 +14,7 @@ use broli::Brotli;
 use deflate::Deflate;
 use gzip::Gzip;
 use lz4::Lz4;
+use snap::Snap;
 use zlib::Zlib;
 use serde::{Deserialize, Serialize};
 use serde_cbor;
@@ -76,6 +78,10 @@ fn main() {
         CompressionBench {
             name: "lz4".to_string(),
             compression: Box::new(Lz4::new(16)),
+        },
+        CompressionBench {
+            name: "snap".to_string(),
+            compression: Box::new(Snap::new()),
         },
     ];
 
