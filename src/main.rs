@@ -1,13 +1,17 @@
 mod broli;
+mod deflate;
 mod gzip;
 mod types;
+mod zlib;
 
 use prettytable::{row, Table};
 use types::Compression;
 
 use borsh::{from_slice, io, to_vec, BorshDeserialize, BorshSerialize};
 use broli::Brotli;
+use deflate::Deflate;
 use gzip::Gzip;
+use zlib::Zlib;
 use serde::{Deserialize, Serialize};
 use serde_cbor;
 use serde_json;
@@ -52,6 +56,14 @@ fn main() {
         CompressionBench {
             name: "gzip".to_string(),
             compression: Box::new(Gzip::new(9)),
+        },
+        CompressionBench {
+            name: "deflate".to_string(),
+            compression: Box::new(Deflate::new(9)),
+        },
+        CompressionBench {
+            name: "zlib".to_string(),
+            compression: Box::new(Zlib::new(9)),
         },
     ];
 
